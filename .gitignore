@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+.cache/
+*.wav
+*.pkl
+.ruff_cache/
+
+# Node UI
+node_modules/
+
+# Editor / OS
+.vscode/
+.vscode-server/
+.idea/
+.DS_Store
+
+# Video test files (to prevent explosive repo sizes)
+*.mp4
+*.mkv
+*.webm
+*.avi
+*.ts

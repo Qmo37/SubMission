@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smart-subtitle"
+version = "0.1.0"
+description = "Align and enhance subtitles from multiple sources using Whisper and LLM"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+dependencies = [
+    "faster-whisper>=1.0.0",
+    "pysubs2>=1.6.0",
+    "opencc-python-reimplemented>=0.1.7",
+    "rapidfuzz>=3.0.0",
+    "pydantic>=2.0.0",
+    "click>=8.1.0",
+    "pyyaml>=6.0",
+    "openai>=1.0.0",
+    "tqdm>=4.65.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+smart-subtitle = "smart_subtitle.cli.main:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

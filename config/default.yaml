@@ -1,0 +1,63 @@
+cache:
+  enabled: true
+  directory: ~/.cache/smart_subtitle
+  max_size_gb: 10.0
+audio:
+  sample_rate: 16000
+  channels: 1
+  codec: pcm_s16le
+transcription:
+  model: small
+  device: auto
+  compute_type: default
+  language: null
+  batch_size: 16
+  cpu_threads: 10
+  num_workers: 1
+  word_timestamps: true
+  condition_on_previous_text: false
+  vad:
+    enabled: true
+    threshold: 0.5
+  chunking:
+    chunk_duration: 600
+    overlap: 5
+translation:
+  provider: openai
+  base_url: http://localhost:11434/v1
+  api_key: null
+  model: hf.co/chienweichang/Llama-3-Taiwan-8B-Instruct-GGUF:Q4_K_M
+  target_language: zh-tw
+  batch_size: 40
+  batch_overlap: 5
+  temperature: 0.3
+  max_tokens: 4096
+  glossary_path: null
+alignment:
+  anchor_mapper:
+    window_size: 60
+    step_size: 30
+    min_sim_threshold: 0.5
+    cluster_tolerance: 2.0
+    min_cluster_score: 2.0
+    min_unique_lines: 3
+  fine_alignment:
+    text_weight: 0.5
+    time_weight: 0.5
+    start_offset: -0.1
+    time_tolerance: 5.0
+    min_match_score: 0.15
+    gap_penalty_weight: 0.2
+    high_confidence_override: 0.9
+  global_delay: 0.4
+output:
+  format: srt
+  language: zh-tw
+  encoding: utf-8
+gap_filling:
+  enabled: true
+  min_gap_duration: 1.0
+  context_window: 3
+logging:
+  level: INFO
+  file: null
