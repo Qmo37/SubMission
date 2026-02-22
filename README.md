@@ -20,7 +20,7 @@
 
 傳統的對齊工具（如 alass）試圖透過單純的波形位移來對齊，但遇到廣告切口、刪減片段或翻譯順序不同時，通常會發生災難性的對齊錯亂。而單純依賴 Whisper 等 AI 語音辨識模型雖然能給出完美的發音時間，但其輸出的斷句往往十分生硬，完全破壞了人類翻譯者的「節奏感（Pacing）」。
 
-**SubMission** 完美彌合了這個斷層。它採用了 **「字幕本位混合架構 (Subtitle-Led Hybrid Architecture)」**。你可以直接餵給它那份「時間完美但翻譯差的字幕」與「時間亂掉但翻譯極佳的字幕」，SubMission 會透過跨語系字面映射 (Lexical Cross-Mapping)、AI 語音聲學錨點 (Acoustic Anchoring) 與語意分析，將兩者天衣無縫地融合為一份**時間軸準確且用字道地的完美字幕母帶**。
+**SubMission** 完美彌合了這個斷層，具備針對各種極端情況 (Edge Cases) 的極高強健性 (Robustness)。不論你處理的影片是**含有額外廣告休息區段的電視廣播版**、**加入了新片段的導演剪輯版**，或是**兩句台詞被合併成一句的重度在地化翻譯**，SubMission 都能游刃有餘地處理。它採用了 **「字幕本位混合架構 (Subtitle-Led Hybrid Architecture)」**。你可以直接餵給它那份「時間完美但翻譯差的字幕」與「時間亂掉但翻譯極佳的字幕」，SubMission 會透過跨語系字面映射 (Lexical Cross-Mapping)、AI 語音聲學錨點 (Acoustic Anchoring) 與語意分析，將兩者天衣無縫地融合為一份**時間軸準確且用字道地的完美字幕母帶**。
 
 ### ✨ 核心技術與特色
 
@@ -37,9 +37,31 @@
 
 SubMission 透過嚴謹的數學與時序護欄來約束機器學習可能產生的幻覺 (Hallucinations)。不論是單檔優化或多檔融合，都會經過 **SubMission Alignment Engine (對齊引擎)** 的淬鍊。
 
-<div align="center">
-  <img src="assets/professional_architecture.png" alt="SubMission 引擎架構圖" width="800"/>
-</div>
+```mermaid
+flowchart LR
+    A[音訊波形] --> D
+    B[時間參考字幕] --> D
+    C[文字參考字幕\n選擇性] --> D
+
+    subgraph D[SubMission 對齊引擎]
+        direction TB
+        E[前處理與跨軌映射] --> F[Whisper 語音轉錄]
+        F --> G[動態錨點共識投票]
+        G --> H[精細對齊評分]
+        H --> I[混合字幕融合]
+        I --> J[本機 LLM 空缺填補]
+    end
+
+    D --> K[最終 SubMission 字幕輸出]
+
+    classDef inputNode fill:#f8fcff,stroke:#0366d6,stroke-width:2px,color:#24292e
+    classDef engineNode fill:#f6f8fa,stroke:#e1e4e8,stroke-width:2px,color:#24292e
+    classDef output fill:#eaeeff,stroke:#6f42c1,stroke-width:2px,color:#24292e
+    
+    class A,B,C inputNode
+    class D engineNode
+    class K output
+```
 
 ## 🖥️ 互動式 Web UI 介面
 
@@ -98,3 +120,11 @@ sudo apt-get install ffmpeg
 ```bash
 smart-subtitle align tests/video1/clip.mkv tests/video1/simplified_timing.srt tests/video1/traditional_text.srt -o output.srt
 ```
+
+## ⚖️ 鳴謝與開源授權 (Acknowledgments & Licenses)
+
+SubMission 建立在許多極優秀的開源專案之上。使用本專案時請遵守其各自的開源授權條款：
+
+* **Llama-3-Taiwan-8B-Instruct**：非常感謝台大自然語言處理實驗室 (NTU NLP Lab) 與開源社群提供此模型，專為臺灣繁體中文語境優化。該模型使用 **Meta Llama 3 Community License**。
+* **faster-whisper, rapidfuzz, FastAPI, Pydantic, React, Vite**：採用 **MIT License**。
+* **OpenCC (opencc-python-reimplemented)**：採用 **Apache 2.0 License**。

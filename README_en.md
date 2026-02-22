@@ -14,7 +14,7 @@
 
 Traditional alignment tools attempt to shift subtitles mathematically by analyzing voice activity, but they often fail catastrophically when presented with missing dialogue, commercial breaks, or localization edits. AI models like Whisper provide perfect timing, but output mechanical, un-styled text blocks that ruin the intended reading pace of a human translator.
 
-SubMission bridges this gap. It operates on a **Subtitle-Led Hybrid Architecture**. If you provide a perfectly timed subtitle file with mediocre translations, and a poorly timed subtitle file with amazing localizations, SubMission leverages local LLM semantics, acoustic analysis, and lexical cross-mapping to seamlessly fuse them into a single flawless **Master Subtitle Track**.
+SubMission bridges this gap with extreme robustness against edge cases. Whether you are dealing with **TV broadcasts containing extra commercial breaks**, **Director's Cuts with newly added scenes**, or **heavy localization edits** where two human translation lines were merged into one, SubMission handles it all. It operates on a **Subtitle-Led Hybrid Architecture**. If you provide a perfectly timed subtitle file with mediocre translations, and a poorly timed subtitle file with amazing localizations, SubMission leverages local LLM semantics, acoustic analysis, and lexical cross-mapping to seamlessly fuse them into a single flawless **Master Subtitle Track**.
 
 ### ✨ Core Capabilities
 
@@ -114,3 +114,11 @@ Align a primary timing track (e.g., Simplified) with a preferred linguistic trac
 ```bash
 smart-subtitle align tests/video1/clip.mkv tests/video1/simplified_timing.srt tests/video1/traditional_text.srt -o output.srt
 ```
+
+## ⚖️ Acknowledgments & Licenses
+
+SubMission is built on the shoulders of incredible open-source projects. Please adhere to their respective licenses when distributing derived works:
+
+* **Llama-3-Taiwan-8B-Instruct**: A massive thanks to the NTU NLP Lab and the open-source community for this model fine-tuned for Taiwanese Mandarin localization. It operates under the **Meta Llama 3 Community License**.
+* **faster-whisper, rapidfuzz, FastAPI, Pydantic, React, Vite**: Licensed under the **MIT License**.
+* **OpenCC (opencc-python-reimplemented)**: Licensed under the **Apache 2.0 License**.
