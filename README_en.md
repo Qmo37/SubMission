@@ -12,9 +12,13 @@
 
 **SubMission** (formerly `smart-subtitle`) was built to solve the hardest problem in video translation and localization media processing: **synchronizing human-translated subtitle pacing with exact spoken audio timings without drifting or dropping lines.** 
 
-Traditional alignment tools attempt to shift subtitles mathematically by analyzing voice activity, but they often fail catastrophically when presented with missing dialogue, commercial breaks, or localization edits. AI models like Whisper provide perfect timing, but output mechanical, un-styled text blocks that ruin the intended reading pace of a human translator.
+In practice, the most common localization workflow looks like this:
+* You have a **perfectly timed subtitle track** (e.g., from an official Web-DL or Blu-ray release), but the translation is overly literal, mechanical, or poorly localized.
+* You also have a **beautifully translated, highly localized subtitle track** (e.g., a dedicated fan translation), but the timings are completely misaligned due to different framerates or alternate intro sequences.
 
-SubMission bridges this gap with extreme robustness against edge cases. Whether you are dealing with **TV broadcasts containing extra commercial breaks**, **Director's Cuts with newly added scenes**, or **heavy localization edits** where two human translation lines were merged into one, SubMission handles it all. It operates on a **Subtitle-Led Hybrid Architecture**. If you provide a perfectly timed subtitle file with mediocre translations, and a poorly timed subtitle file with amazing localizations, SubMission leverages local LLM semantics, acoustic analysis, and lexical cross-mapping to seamlessly fuse them into a single flawless **Master Subtitle Track**.
+SubMission solves this exact problem. It operates on a **Subtitle-Led Hybrid Architecture**. If you provide the "perfectly timed but poorly translated" subtitle alongside the "poorly timed but perfectly translated" subtitle, SubMission leverages local LLM semantics, acoustic analysis, and lexical cross-mapping to seamlessly fuse them into a single flawless **Master Subtitle Track**.
+
+Beyond this standard use case, SubMission is built with extreme robustness against edge cases. While traditional alignment tools fail catastrophically when encountering missing dialogue, SubMission handles it all. Whether you are dealing with **TV broadcasts containing extra commercial breaks**, **Director's Cuts with newly added scenes**, or **heavy localization edits** where two human translation lines were merged into one, SubMission's dynamic anchor consensus maps it beautifully without dropping lines.
 
 ### ✨ Core Capabilities
 
@@ -65,6 +69,10 @@ Because SubMission requires extreme parameter tuning for varying video types, it
 2. **Frontend UI (`React / Vite`)**: A high-performance, glassmorphism-styled timeline visualizer.
     * Allows constraint-based drag manipulation of subtitles (physics snap blocks without breaking chronological constraints).
     * Features physical layer visualization showing semantic Anchor linkage mapped onto the Whisper boundaries.
+
+<div align="center">
+  <img src="assets/ui_preview.png" alt="SubMission Interactive Timeline Web UI Preview" width="800"/>
+</div>
 
 <div align="center">
     <i>Launch the interactive timeline visualization server:</i><br>
