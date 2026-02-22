@@ -15,10 +15,11 @@ SubMission bridges this gap. It operates on a **Subtitle-Led Hybrid Architecture
 
 ### ✨ Core Capabilities
 
-* **Immunity to Time/Sync Drift:** By using a "Sliding Window Continuity Algorithm" instead of global offsets, it safely aligns subtitles even if the video has newly inserted commercial breaks.
-* **Lexical Early-Binding (Cross-Mapping):** Natively maps regional dialects (e.g. Traditional Taiwanese Mandarin onto Mainland Simplified) by scanning for strings with `rapidfuzz` across massive 5-minute synchronization windows.
-* **Semantic Gap Policy:** Smoothly interpolates subtitle timings during complex overlaps by rejecting mathematically unsafe alignments unless textual similarity approaches `1.0`.
-* **Zero Lost Dialogue:** Iterates fundamentally over the original *Human Subtitle Lines* rather than Whisper segments to guarantee 100% structural retention.
+* **Immunity to Time/Sync Drift (Dynamic Anchoring):** Escapes the trap of naïve global time-shifting. By analyzing the overlap between Whisper's transcription and your human subtitle, SubMission calculates a "Sliding Window Offset Consensus". This creates a mathematical map of your video, absorbing sudden commercial breaks, missing scenes, and different TV/Web-DL cuts effortlessly.
+* **Lexical Early-Binding (Cross-Mapping):** Natively maps regional dialects (e.g. Traditional Taiwanese Mandarin onto Mainland Simplified) by scanning for strings with `rapidfuzz` across massive 5-minute synchronization windows perfectly before audio alignment even begins.
+* **Zero Lost Dialogue (Subtitle-Led Iteration):** Voice Activity Detection (VAD) algorithms frequently fail during loud music or background noise. Instead of iterating blindly over Whisper segments (and dropping lines), SubMission iterates purely over your *Original Human Subtitle lines*, ensuring 100% structural and conversational retention.
+* **Semantic Gap Policy:** Smoothly interpolates subtitle timings during complex overlaps by computing the human-authored conversational gap between sentences and punishing matches that violate intended reading pace.
+* **Chronological Monotonicity Guardrails:** A strict structural rule that physically prevents greedily snapping subtitles out of their sequential order array.
 * **LLM Gap Filling:** Automatically translates any untranslated background chatter via local models (Ollama/Llama-3).
 
 ---
@@ -53,9 +54,14 @@ flowchart LR
     class K output
 ```
 
-## 🛠️ Interactive Web UI
+## �️ Interactive Web UI Stack
 
-The project contains a zero-dependency bundled React / Vite graphical user interface to visualize the pipeline alignment logs and modify parameters dynamically. It allows visual timeline dragging, parameter updating, and live sync playback.
+Because SubMission requires extreme parameter tuning for varying video types, it bundles a zero-dependency full-stack web application directly inside the Python CLI:
+
+1. **Backend API (`FastAPI`)**: Embedded inside the `smart-subtitle ui` command, it exposes REST endpoints to trigger Python transcription and alignment threads while serving static assets natively. 
+2. **Frontend UI (`React / Vite`)**: A high-performance, glassmorphism-styled timeline visualizer.
+    * Allows constraint-based drag manipulation of subtitles (physics snap blocks without breaking chronological constraints).
+    * Features physical layer visualization showing semantic Anchor linkage mapped onto the Whisper boundaries.
 
 <div align="center">
     <i>Launch the interactive timeline visualization server:</i><br>
@@ -64,30 +70,43 @@ The project contains a zero-dependency bundled React / Vite graphical user inter
 
 ## ⚙️ How it Works (The 7-Stage Pipeline)
 
-1. **Extraction & Preprocessing**: Extracts 16kHz audio. Optionally performs Lexical Cross-Mapping to inject localized text variants onto the master timing track.
-2. **Transcription**: Runs `faster-whisper` on the local machine with aggressive word-level tracking.
-3. **Reference Translation**: Passes foreign audio segments into an LLM (e.g., Llama-3) to create a baseline semantic bridge.
-4. **Dynamic Anchor Mapping**: Uses a Sliding Window Consensus Algorithm to calculate absolute offsets, immunizing the pipeline against drastic sync drifts like commercial breaks.
-5. **Fine Alignment**: The core `TextMatcher` scoring engine. Evaluates Monotonicity, Time Penalties, and Textual Similarity.
-6. **Merge Stage (The Hybrid Backbone)**: Locks down the final string by injecting the highest-priority localized text into the newly anchored Audio Segment.
-7. **Gap Filling**: Translates any Whisper audio segments that totally lacked human-provided subtitles.
+1. **Extraction & Preprocessing**: Extracts 16kHz audio. Optionally performs Lexical Cross-Mapping (`bilingual_cross_match_strategy = "lexical"`) to inject localized text variants onto the exact timings of the master track.
+2. **Transcription**: Runs `faster-whisper` requesting `word_timestamps=True` and aggressively enforcing `condition_on_previous_text=False` to prevent model hallucination over quiet spans.
+3. **Reference Translation**: Passes foreign audio segments into an LLM (e.g., Llama-3-Taiwan-8B) to create a baseline semantic bridge.
+4. **Dynamic Anchor Mapping**: The heart of the engine. Uses a Sliding Window Consensus Algorithm combining the "Rule of 3" (3 sequential, highly confident string matches) to calculate absolute non-linear semantic offsets. 
+5. **Fine Alignment**: The `TextMatcher` scoring engine. Evaluates Monotonicity, Time Penalties to the millisecond, and Textual String Similarity (`rapidfuzz`).
+6. **Merge Stage (The Hybrid Backbone)**: Locks down the final string. Synthesizes the exact Whisper acoustic start boundary with the original Human reading duration to fix trailing whisper artifacts.
+7. **Gap Filling**: Translates any Whisper segments that completely lack corresponding human `.srt` data.
 
-## � Installation & Execution
+## 📦 Installation & Configuration
 
-#### 1. Setup Virtual Environment
+### Hardware Acceleration (Intel Arc GPU Guide)
+SubMission natively leverages LLMs for semantic alignment parsing. Standard architectures use NVIDIA CUDA, but this tool was heavily optimized and tested utilizing an **Intel Arc Pro B60 24GB GPU**.
+* **Base Compute**: Use `faster-whisper` running natively on standard CPU threading. OpenVINO was tested but found highly unstable (driver deadlocks on SYCL).
+* **LLM Backend**: Run `Ollama` utilizing `Llama-3-Taiwan-8B-Instruct`. 
+* **Crucial Arc Setup**: When executing Ollama on specific Linux kernel/Intel Arc setups, `sycl` execution threads may hard crash (`exit status 2`). You must explicitly bypass Ollama's bundled `.so` libs in favor of your host system's `intel-basekit` runtime parameters. Set these in your system environment to achieve >60 tokens/s on Arc:
+```bash
+export OLLAMA_LLM_LIBRARY="system"
+export ZES_ENABLE_SYSMAN=1
+export SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS=1
+export NEOReadDebugKeys=1
+export DisableScratchSpace=1
+```
+
+### 1. Setup Virtual Environment
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-#### 2. Install Alignment Tool
+### 2. Install Alignment Tool
 Ensure `alass` is accessible on your system PATH for legacy global alignment fallback:
 ```bash
 sudo apt-get install ffmpeg
 ```
 
-#### 3. Run Pipeline (CLI)
+### 3. Run Pipeline (CLI)
 Align a primary timing track (e.g., Simplified) with a preferred linguistic track (e.g., Traditional) effortlessly:
 ```bash
 smart-subtitle align tests/video1/clip.mkv tests/video1/simplified_timing.srt tests/video1/traditional_text.srt -o output.srt

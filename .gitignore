@@ -27,3 +27,11 @@ node_modules/
 *.webm
 *.avi
 *.ts
+
+# Dev & AI Tools
+.claude/
+PROPOSAL.md
+ARCHITECTURE.md
+
+# Tests
+tests/
